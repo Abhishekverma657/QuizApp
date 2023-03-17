@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "180915456762",
+    "project_id": "quiz-d40c8",
+    "storage_bucket": "quiz-d40c8.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:180915456762:android:c85ab03c455a3aeebbd743",
+        "android_client_info": {
+          "package_name": "com.example.ytprojects.fluttermentor.flutter_mentor_quiz_app_tut"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "180915456762-ni8bero10hbj521pr681f9dbk2jrda1m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYA9lZ2qJaccrFJooFIDt2nwg3CBFiMgM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "180915456762-ni8bero10hbj521pr681f9dbk2jrda1m.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

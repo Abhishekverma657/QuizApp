@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mentor_quiz_app_tut/answer.dart';
+import 'package:flutter_mentor_quiz_app_tut/previousscore.dart';
+import 'package:timer_count_down/timer_controller.dart';
+import 'package:timer_count_down/timer_count_down.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -7,7 +10,11 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  final CountdownController _controller =
+      new CountdownController(autoStart: true);
+
   List<Icon> _scoreTracker = [];
+  int prev;
   int _questionIndex = 0;
   int _totalScore = 0;
   bool answerWasSelected = false;
@@ -44,17 +51,28 @@ class _HomeState extends State<Home> {
 
   void _nextQuestion() {
     setState(() {
+      _controller.restart();
       _questionIndex++;
       answerWasSelected = false;
       correctAnswerSelected = false;
     });
     // what happens at the end of the quiz
     if (_questionIndex >= _questions.length) {
+      _controller.resume();
       _resetQuiz();
     }
   }
 
+  List totalscore;
+
   void _resetQuiz() {
+    // print(_totalScore);
+    prev = _totalScore;
+    // totalscore.add(_totalScore);
+    // ListView(
+    //   children: [],
+    // );
+
     setState(() {
       _questionIndex = 0;
       _totalScore = 0;
@@ -68,125 +86,167 @@ class _HomeState extends State<Home> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Flutter Mentor Quiz App',
+          'Flutter Quiz App',
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
+        
       ),
-      body: Center(
-        child: Column(
-          children: [
-            Row(
-              children: [
-                if (_scoreTracker.length == 0)
-                  SizedBox(
-                    height: 25.0,
+      body: SingleChildScrollView(
+        child: Center(
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Text(
+                    " Previous Score : ${prev.toString()}",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                   ),
-                if (_scoreTracker.length > 0) ..._scoreTracker
-              ],
-            ),
-            Container(
-              width: double.infinity,
-              height: 130.0,
-              margin: EdgeInsets.only(bottom: 10.0, left: 30.0, right: 30.0),
-              padding: EdgeInsets.symmetric(horizontal: 50.0, vertical: 20.0),
-              decoration: BoxDecoration(
-                color: Colors.deepOrange,
-                borderRadius: BorderRadius.circular(10.0),
+                  CircleAvatar(
+                    backgroundColor: Colors.greenAccent,
+                    child: Countdown(
+                      controller: _controller,
+                      seconds: 30,
+                      build: (BuildContext context, double time) =>
+                          Text(time.toString()),
+                      interval: Duration(seconds: 1),
+                      onFinished: () {
+                        if (!answerWasSelected) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Center(child: Text(' Time UP')),
+                          ));
+                          _nextQuestion();
+                          if (_questionIndex == _questions.length) {
+                            _controller.resume();
+                          } else {
+                            _controller.restart();
+                          }
+
+                          return;
+                        }
+
+                        print('Timer is done!');
+                      },
+                    ),
+                  ),
+                ],
               ),
-              child: Center(
-                child: Text(
-                  _questions[_questionIndex]['question'],
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 20.0,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+      
+               
+              Row(
+                children: [
+                  if (_scoreTracker.length == 0)
+                    SizedBox(
+                      height: 25.0,
+                    ),
+                  if (_scoreTracker.length > 0) ..._scoreTracker
+                ],
+              ),
+              Container(
+                width: double.infinity,
+                height: 130.0,
+                margin: EdgeInsets.only(bottom: 10.0, left: 30.0, right: 30.0),
+                padding: EdgeInsets.symmetric(horizontal: 50.0, vertical: 20.0),
+                decoration: BoxDecoration(
+                  color: Colors.deepOrange,
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                child: Center(
+                  child: Text(
+                    _questions[_questionIndex]['question'],
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 20.0,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
-            ),
-            ...(_questions[_questionIndex]['answers']
-                    as List<Map<String, Object>>)
-                .map(
-              (answer) => Answer(
-                answerText: answer['answerText'],
-                answerColor: answerWasSelected
-                    ? answer['score']
-                        ? Colors.green
-                        : Colors.red
-                    : null,
-                answerTap: () {
-                  // if answer was already selected then nothing happens onTap
-                  if (answerWasSelected) {
+              ...(_questions[_questionIndex]['answers']
+                      as List<Map<String, Object>>)
+                  .map(
+                (answer) => Answer(
+                  answerText: answer['answerText'],
+                  answerColor: answerWasSelected
+                      ? answer['score']
+                          ? Colors.green
+                          : Colors.red
+                      : null,
+                  answerTap: () {
+                    // if answer was already selected then nothing happens onTap
+                    if (answerWasSelected) {
+                      return;
+                    }
+                    //answer is being selected
+                    _questionAnswered(answer['score']);
+                  },
+                ),
+              ),
+              SizedBox(height: 20.0),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  minimumSize: Size(double.infinity, 40.0),
+                ),
+                onPressed: () {
+                  if (!answerWasSelected) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(
+                          'Please select an answer before going to the next question'),
+                    ));
                     return;
                   }
-                  //answer is being selected
-                  _questionAnswered(answer['score']);
+                  _nextQuestion();
                 },
+                child: Text(endOfQuiz ? 'Restart Quiz' : 'Next Question'),
               ),
-            ),
-            SizedBox(height: 20.0),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                minimumSize: Size(double.infinity, 40.0),
-              ),
-              onPressed: () {
-                if (!answerWasSelected) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text(
-                        'Please select an answer before going to the next question'),
-                  ));
-                  return;
-                }
-                _nextQuestion();
-              },
-              child: Text(endOfQuiz ? 'Restart Quiz' : 'Next Question'),
-            ),
-            Container(
-              padding: EdgeInsets.all(20.0),
-              child: Text(
-                '${_totalScore.toString()}/${_questions.length}',
-                style: TextStyle(fontSize: 40.0, fontWeight: FontWeight.bold),
-              ),
-            ),
-            if (answerWasSelected && !endOfQuiz)
+      
               Container(
-                height: 100,
-                width: double.infinity,
-                color: correctAnswerSelected ? Colors.green : Colors.red,
-                child: Center(
-                  child: Text(
-                    correctAnswerSelected
-                        ? 'Well done, you got it right!'
-                        : 'Wrong :/',
-                    style: TextStyle(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                padding: EdgeInsets.all(20.0),
+                child: Text(
+                  '${_totalScore.toString()}/${_questions.length}',
+                  style: TextStyle(fontSize: 40.0, fontWeight: FontWeight.bold),
+                ),
+              ),
+              if (answerWasSelected && !endOfQuiz)
+                Container(
+                  height: 100,
+                  width: double.infinity,
+                  color: correctAnswerSelected ? Colors.green : Colors.red,
+                  child: Center(
+                    child: Text(
+                      correctAnswerSelected
+                          ? 'Well done, you got it right!'
+                          : 'Wrong :/',
+                      style: TextStyle(
+                        fontSize: 20.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            if (endOfQuiz)
-              Container(
-                height: 100,
-                width: double.infinity,
-                color: Colors.black,
-                child: Center(
-                  child: Text(
-                    _totalScore > 4
-                        ? 'Congratulations! Your final score is: $_totalScore'
-                        : 'Your final score is: $_totalScore. Better luck next time!',
-                    style: TextStyle(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
-                      color: _totalScore > 4 ? Colors.green : Colors.red,
+              if (endOfQuiz)
+                Container(
+                  height: 100,
+                  width: double.infinity,
+                  color: Colors.black,
+                  child: Center(
+                    child: Text(
+                      _totalScore > 4
+                          ? 'Congratulations! Your final score is: $_totalScore'
+                          : 'Your final score is: $_totalScore. Better luck next time!',
+                      style: TextStyle(
+                        fontSize: 20.0,
+                        fontWeight: FontWeight.bold,
+                        color: _totalScore > 4 ? Colors.green : Colors.red,
+                      ),
                     ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
