@@ -1,4 +1,4 @@
-# flutter_mentor_quiz_app_tut
+# flutter_quiz_app
 
 A Quiz App
 
@@ -6,8 +6,8 @@ A Quiz App
 
 This project is a starting point for a Flutter application.
 
-A few resources to get you started if this is your first Flutter project:
-
+few package  use int this Flutter project:
+ -[Firebase_core for connecting Firebase]( firebase_core: ^2.8.0)
 - [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
 - [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
 
